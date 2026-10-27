@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>SpankBang Quad Player — Web</title>
+  <script src="./bookmarklet.js"></script>
+  <style>
+    :root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#eff1f5;background:#111318;color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#111318}header{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:16px;padding:14px 20px;background:#191c23;border-bottom:1px solid #30343d}h1{margin:0;font-size:18px;white-space:nowrap}h2{margin:0 0 10px;font-size:16px}
+    main{display:grid;gap:16px;max-width:900px;margin:18px auto;padding:0 18px 24px}.panel{padding:16px;border:1px solid #323741;border-radius:10px;background:#1b1e25}.panel p,.panel ol{margin:0 0 10px;color:#c6cad2;font-size:14px;line-height:1.6}.panel ol{padding-left:20px}
+    button{border:0;border-radius:8px;padding:10px 15px;background:#c4f26a;color:#19210e;font:inherit;font-weight:750;cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}button.secondary{background:#30343d;color:#f2f3f6}.row{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+    .bookmarklet{display:inline-block;padding:10px 16px;border:2px dashed #c4f26a;border-radius:8px;color:#c4f26a;font-weight:750;text-decoration:none;cursor:grab}
+    textarea{width:100%;min-height:90px;margin-bottom:10px;padding:10px 12px;border:1px solid #454b57;border-radius:8px;background:#101217;color:inherit;font:13px/1.5 ui-monospace,Consolas,monospace;resize:vertical}
+    .list{display:grid;gap:8px;margin:0 0 12px;padding:0;list-style:none}.list li{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid #323741;border-radius:8px;background:#15171d;font-size:14px}.list .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.list .id{color:#818895;font:12px ui-monospace,Consolas,monospace}.list button{padding:5px 10px;font-size:12px}.list .empty{justify-content:center;color:#818895}
+    .status{min-height:1.4em;margin:0;color:#aeb4c0;font-size:14px}.status.error{color:#ffaaa6}
+    .player-view{position:fixed;inset:0;z-index:10;display:none;background:#07080a}.player-view.open{display:grid;grid-template-rows:auto 1fr}.player-head{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#171a20}.player-head h2{margin:0;font-size:15px}.player-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:3px;min-height:0}.player-grid.n1{grid-template-columns:1fr;grid-template-rows:1fr}.player-grid.n2{grid-template-rows:1fr}.slot{position:relative;min-width:0;min-height:0;background:#000}.slot iframe{width:100%;height:100%;border:0}.slot-label{position:absolute;left:8px;top:8px;z-index:1;max-width:75%;padding:4px 7px;border-radius:5px;background:#000a;font-size:12px;pointer-events:none}.slot.vacant{display:grid;place-items:center;color:#555b66;font-size:13px}.close{border:1px solid #555b66;border-radius:7px;padding:8px 12px;background:#262a32;color:#fff;font-weight:400}
+    @media(max-width:650px){header{padding:12px 14px}main{padding:0 12px 20px}.player-grid,.player-grid.n2{grid-template-columns:1fr;grid-template-rows:none;grid-auto-rows:minmax(200px,1fr);overflow:auto}.slot.vacant{display:none}}
+  </style>
+</head>
+<body>
+  <header><h1>SpankBang Quad Player <small>· Web</small></h1></header>
+  <main>
+    <section class="panel" aria-labelledby="selection-heading">
+      <h2 id="selection-heading">選択中の動画 <span id="selection-count">0 / 4</span></h2>
+      <ul class="list" id="selection"></ul>
+      <div class="row"><button id="play" disabled>再生</button><button class="secondary" id="clear">すべて解除</button></div>
+      <p class="status" id="status" aria-live="polite"></p>
+    </section>
+    <section class="panel" aria-labelledby="bookmarklet-heading">
+      <h2 id="bookmarklet-heading">ブックマークレットで選ぶ</h2>
+      <ol>
+        <li>下のボタンをブックマークバーへドラッグして登録します。</li>
+        <li>SpankBangで検索し、結果ページで登録したブックマークをクリックします。</li>
+        <li>サムネイルのチェックで最大4本選び、「Quad Playerで開く」を押します。ページを移動したら、もう一度ブックマークをクリックすると選択の続きができます。</li>
+      </ol>
+      <div class="row"><a class="bookmarklet" id="bookmarklet" href="#">SB Quad 選択</a><button class="secondary" id="copy-bookmarklet">コードをコピー</button></div>
+      <p class="status" id="bookmarklet-status">スマホでは、コピーしたコードをURLとしてブックマークを作成し、SpankBangのページでアドレスバーにそのブックマーク名を入力して実行します。</p>
+    </section>
+    <section class="panel" aria-labelledby="paste-heading">
+      <h2 id="paste-heading">URLを貼り付けて追加</h2>
+      <textarea id="paste" placeholder="https://spankbang.com/abc12/video/...&#10;1行に1つずつ、最大4つ" aria-label="動画URL"></textarea>
+      <button class="secondary" id="add-urls">追加</button>
+    </section>
+  </main>
+  <section class="player-view" id="player-view" aria-label="4分割プレーヤー"><div class="player-head"><h2>SpankBang Quad Player</h2><button class="close" id="close-player">一覧に戻る</button></div><div class="player-grid" id="player-grid"></div></section>
+  <script>
+    const MAX = 4;
+    const SITE = /^([a-z\d-]+\.)?spankbang\.(com|party)$/i;
+    const VIDEO_ID = /^[a-z\d]{1,16}$/i;
+    const VIDEO_PATH = /^\/([a-z\d]{1,16})\/(?:video|embed|play)(?:\/|$)/i;
+    let selected = [];
+    const $ = selector => document.querySelector(selector);
+    const status = $('#status');
+    const playerView = $('#player-view');
+    const escapeHtml = value => String(value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+    const setStatus = (text, error) => { status.textContent = text; status.className = error ? 'status error' : 'status'; };
+
+    // The URL hash is the selection's only storage: the bookmarklet hands videos over through it,
+    // and keeping it in sync makes a reload or a copied link reopen the same set.
+    function readHash() {
+      const params = new URLSearchParams(location.hash.slice(1));
+      const host = SITE.test(params.get('h') || '') ? params.get('h') : 'spankbang.com';
+      const titles = params.getAll('t');
+      return params.getAll('v').map((id, i) => ({ id, host, title: (titles[i] || '').slice(0, 180) || `Video ${id}` }))
+        .filter(video => VIDEO_ID.test(video.id)).slice(0, MAX);
+    }
+    function writeHash() {
+      const params = new URLSearchParams();
+      if (selected.length) params.set('h', selected[0].host);
+      for (const video of selected) { params.append('v', video.id); params.append('t', video.title); }
+      history.replaceState(null, '', selected.length ? `#${params}` : location.pathname + location.search);
+    }
+
+    function render() {
+      $('#selection-count').textContent = `${selected.length} / ${MAX}`;
+      $('#play').disabled = !selected.length;
+      $('#selection').innerHTML = selected.length
+        ? selected.map((video, i) => `<li><span class="t" title="${escapeHtml(video.title)}">${escapeHtml(video.title)}</span><span class="id">${escapeHtml(video.id)}</span><button class="secondary" data-remove="${i}">削除</button></li>`).join('')
+        : '<li class="empty">ブックマークレットかURL貼り付けで動画を追加してください。</li>';
+      writeHash();
+    }
+
+    function embedUrl(video) {
+      const url = new URL(`https://${video.host}/${encodeURIComponent(video.id)}/embed/`);
+      // Muted autoplay is the browser-compatible way to start cross-origin embeds without a play click.
+      url.searchParams.set('autoplay', '1');
+      url.searchParams.set('muted', '1');
+      return url.href;
+    }
+    function openPlayer() {
+      if (!selected.length) return;
+      const grid = $('#player-grid');
+      grid.className = `player-grid n${selected.length}`;
+      const slots = selected.length > 2 ? MAX : selected.length;
+      grid.innerHTML = Array.from({ length: slots }, (_, i) => {
+        const video = selected[i];
+        return video
+          ? `<div class="slot"><span class="slot-label">${escapeHtml(video.title)}</span><iframe src="${escapeHtml(embedUrl(video))}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" title="Video ${i + 1}"></iframe></div>`
+          : '<div class="slot vacant">空き</div>';
+      }).join('');
+      playerView.classList.add('open');
+    }
+    function closePlayer() { playerView.classList.remove('open'); $('#player-grid').replaceChildren(); }
+
+    function addFromText(text) {
+      let added = 0, skipped = 0;
+      for (const token of text.split(/\s+/).filter(Boolean)) {
+        let url;
+        try { url = new URL(token); } catch { skipped++; continue; }
+        const match = url.pathname.match(VIDEO_PATH);
+        if (!SITE.test(url.hostname) || !match) { skipped++; continue; }
+        if (selected.some(video => video.id === match[1])) continue;
+        if (selected.length >= MAX) { skipped++; continue; }
+        let slug = url.pathname.split('/').filter(Boolean).at(-1) || '';
+        try { slug = decodeURIComponent(slug); } catch {}
+        const title = /video|embed|play/i.test(slug) || slug === match[1] ? `Video ${match[1]}` : slug.replace(/[+_-]+/g, ' ');
+        selected.push({ id: match[1], host: url.hostname, title: title.slice(0, 180) });
+        added++;
+      }
+      render();
+      setStatus(skipped ? `${added} 本追加しました。${skipped} 件はSpankBangの動画URLでないか、4本の上限を超えたため追加していません。` : `${added} 本追加しました。`, skipped > 0);
+    }
+
+    function setupBookmarklet() {
+      const link = $('#bookmarklet');
+      const playerUrl = location.origin + location.pathname;
+      const code = `javascript:${encodeURIComponent(`(${sbqpBookmarklet})(${JSON.stringify(playerUrl)})`)}`;
+      link.href = code;
+      link.addEventListener('click', event => { event.preventDefault(); $('#bookmarklet-status').textContent = 'このボタンはクリックではなく、ブックマークバーへドラッグして登録してください。'; });
+      $('#copy-bookmarklet').addEventListener('click', async () => {
+        try { await navigator.clipboard.writeText(code); $('#bookmarklet-status').textContent = 'コードをコピーしました。新しいブックマークのURL欄に貼り付けてください。'; }
+        catch { prompt('このコードをコピーしてください', code); }
+      });
+      if (location.protocol === 'file:') $('#bookmarklet-status').textContent = 'ローカルファイルで開いています。SpankBangのページからはこのファイルを開けないため、GitHub PagesのURLで開いてから登録してください。';
+    }
+
+    function loadFromHash() {
+      const fromHash = readHash();
+      if (!fromHash.length) return;
+      selected = fromHash;
+      render();
+      openPlayer();
+    }
+
+    $('#selection').addEventListener('click', event => {
+      const index = event.target.closest('[data-remove]')?.dataset.remove;
+      if (index === undefined) return;
+      selected.splice(Number(index), 1);
+      render();
+    });
+    $('#clear').addEventListener('click', () => { selected = []; render(); setStatus(''); });
+    $('#play').addEventListener('click', openPlayer);
+    $('#add-urls').addEventListener('click', () => { addFromText($('#paste').value); $('#paste').value = ''; });
+    $('#close-player').addEventListener('click', closePlayer);
+    document.addEventListener('keydown', event => { if (event.key === 'Escape') closePlayer(); });
+    window.addEventListener('hashchange', loadFromHash);
+
+    setupBookmarklet();
+    // Read the hash before the first render: render() rewrites it from the (still empty) selection.
+    selected = readHash();
+    render();
+    openPlayer();
+  </script>
+</body>
+</html>

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <title>SpankBang Multi Player v1.1.0 — Web</title>
+  <title>SpankBang Multi Player v1.2.0 — Web</title>
   <script src="./bookmarklet.js"></script>
   <style>
     :root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#eff1f5;background:#111318;color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#111318}
@@ -13,9 +13,8 @@
     .toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;max-width:900px;margin:10px auto 6px;padding:0 18px}.toolbar label,.toolbar span{color:#c6cad2}.toolbar select{padding:8px;border:1px solid #454b57;border-radius:7px;background:#20232a;color:#fff}
     button{border:0;border-radius:8px;padding:10px 15px;background:#c4f26a;color:#19210e;font:inherit;font-weight:750;cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}button.secondary{background:#30343d;color:#f2f3f6}.row{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
     .status{max-width:900px;min-height:1.4em;margin:0 auto;padding:0 18px 10px;color:#aeb4c0;font-size:14px}.status.error{color:#ffaaa6}
-    main{display:grid;gap:16px;max-width:900px;margin:8px auto;padding:0 18px 24px}.panel{padding:16px;border:1px solid #323741;border-radius:10px;background:#1b1e25}.panel p,.panel ol{margin:0 0 10px;color:#c6cad2;font-size:14px;line-height:1.6}.panel ol{padding-left:20px}.panel .note{margin:10px 0 0;color:#aeb4c0;font-size:13px}
+    main{display:grid;gap:16px;max-width:900px;margin:8px auto;padding:0 18px 24px}.panel{padding:16px;border:1px solid #323741;border-radius:10px;background:#1b1e25}.panel p,.panel ol{margin:0 0 10px;color:#c6cad2;font-size:14px;line-height:1.6}.panel ol{padding-left:20px}.panel ol ul{margin:4px 0;padding-left:18px}kbd{padding:1px 5px;border:1px solid #555b66;border-radius:4px;background:#262a32;font:12px ui-monospace,Consolas,monospace}main>.note{margin:0;color:#aeb4c0;font-size:13px}.panel .note{margin:10px 0 0;color:#aeb4c0;font-size:13px}
     .bookmarklet{display:inline-block;padding:10px 16px;border:2px dashed #c4f26a;border-radius:8px;color:#c4f26a;font-weight:750;text-decoration:none;cursor:grab}
-    textarea{width:100%;min-height:90px;margin-bottom:10px;padding:10px 12px;border:1px solid #454b57;border-radius:8px;background:#101217;color:inherit;font:13px/1.5 ui-monospace,Consolas,monospace;resize:vertical}
     .list{display:grid;gap:8px;margin:0;padding:0;list-style:none}.list li{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid #323741;border-radius:8px;background:#15171d;font-size:14px}.list .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.list .kind{flex:none;color:#818895;font-size:12px}.list button{padding:5px 10px;font-size:12px}.list .empty{justify-content:center;color:#818895}
     .player-view{position:fixed;inset:0;z-index:10;display:none;background:#07080a}.player-view.open{display:grid;grid-template-rows:auto 1fr}.player-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;background:#171a20}.player-head h2{margin:0;font-size:15px}.key-help{flex:1;color:#aeb4c0;font-size:12px}
     .share-actions{display:flex;align-items:center;gap:6px}.share-actions button,.close{border:1px solid #555b66;border-radius:7px;padding:7px 9px;background:#262a32;color:#fff;font:600 12px system-ui,sans-serif}.share-actions button:hover,.close:hover{border-color:#c4f26a;color:#c4f26a}.close{padding:8px 12px}
@@ -34,7 +33,7 @@
 <body>
   <div class="sticky-controls">
     <header>
-      <h1><a class="brand-link" href="https://spankbang.com/" target="_blank" rel="noopener noreferrer">SpankBang</a> Multi Player <small>v1.1.0</small></h1>
+      <h1><a class="brand-link" href="https://spankbang.com/" target="_blank" rel="noopener noreferrer">SpankBang</a> Multi Player <small>v1.2.0</small></h1>
       <nav class="contacts" aria-label="連絡先"><a href="mailto:okcysk@gmail.com"><span class="contact-icon" aria-hidden="true">✉</span>okcysk@gmail.com</a><a href="https://x.com/okcysk46770" target="_blank" rel="noopener noreferrer"><span class="contact-icon" aria-hidden="true">𝕏</span>@okcysk46770</a></nav>
     </header>
     <div class="toolbar">
@@ -52,33 +51,47 @@
       <h2 id="selection-heading">選択中の動画</h2>
       <ul class="list" id="selection"></ul>
     </section>
-    <section class="panel" aria-labelledby="bookmarklet-heading">
-      <h2 id="bookmarklet-heading">ブックマークレットで選ぶ</h2>
+    <section class="panel" aria-labelledby="pc-heading">
+      <h2 id="pc-heading">PCでの使い方</h2>
+      <p>動画はブックマークレット（ブックマークに登録して使う小さなプログラム）で選びます。</p>
       <ol>
-        <li>下のボタンをブックマークバーへドラッグして登録します。</li>
-        <li>SpankBangで検索し、結果ページで登録したブックマークをクリックします。</li>
-        <li>サムネイルのチェックで最大16本選び、「Multi Playerで開く」を押します。ページを移動したら、もう一度ブックマークをクリックすると選択の続きができます。</li>
+        <li>ブックマークバーを表示します（Chrome / Edge は <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd>、Mac は <kbd>⌘</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd>）。</li>
+        <li>下の「<span class="bookmarklet-name">SB Multi</span>」ボタンをブックマークバーへドラッグして登録します（クリックでは登録されません）。</li>
+        <li>SpankBangで検索し、検索結果ページで登録したブックマークをクリックします。</li>
+        <li>サムネイル左上のチェックで動画を最大16本選び、右下の「Multi Playerで開く」を押すと、新しいタブでプレーヤーが開きます。</li>
+        <li>別の検索ページに移ったら、もう一度ブックマークをクリックすると選択の続きができます。動画ページでは「この動画を追加」も使えます。</li>
       </ol>
-      <div class="row"><a class="bookmarklet" id="bookmarklet" href="#">SB Multi 選択</a><button class="secondary" id="copy-bookmarklet">コードをコピー</button></div>
-      <p class="note" id="bookmarklet-status">スマホでは、コピーしたコードをURLとしてブックマークを作成し、SpankBangのページでアドレスバーにそのブックマーク名を入力して実行します。</p>
+      <div class="row"><a class="bookmarklet" id="bookmarklet" href="#">SB Multi</a></div>
+      <p class="note" id="pc-status"></p>
     </section>
-    <section class="panel" aria-labelledby="paste-heading">
-      <h2 id="paste-heading">URLを貼り付けて追加</h2>
-      <textarea id="paste" placeholder="https://spankbang.com/abc12/video/...&#10;1行に1つずつ" aria-label="動画URL"></textarea>
-      <button class="secondary" id="add-urls">追加</button>
-      <p class="note">貼り付けた動画は埋め込みプレーヤーで再生されるため、シークバーとキー操作は使えません。</p>
+    <section class="panel" aria-labelledby="mobile-heading">
+      <h2 id="mobile-heading">スマホでの使い方</h2>
+      <p>スマホではドラッグできないため、コードをコピーしてブックマークを手動で作ります。</p>
+      <ol>
+        <li>下の「コードをコピー」を押します。</li>
+        <li>このページをブックマークに追加し、そのブックマークを編集します。名前を「<span class="bookmarklet-name">SB Multi</span>」に、URLをコピーしたコードに置き換えて保存します。</li>
+        <li>SpankBangで検索し、検索結果ページでブックマークを実行します。
+          <ul>
+            <li>Android（Chrome）: アドレスバーに「SB Multi」と入力し、候補に出たブックマークをタップします。</li>
+            <li>iPhone（Safari）: ブックマーク一覧を開き、「SB Multi」をタップします。</li>
+          </ul>
+        </li>
+        <li>サムネイル左上のチェックで動画を選び、「Multi Playerで開く」を押します。</li>
+      </ol>
+      <div class="row"><button class="secondary" id="copy-bookmarklet">コードをコピー</button></div>
+      <p class="note" id="mobile-status"></p>
     </section>
+    <p class="note">プレーヤーを更新したときは、ブックマークも登録し直してください。登録中のブックマークのバージョンは、SpankBang上に出るパネルに表示されます。</p>
   </main>
   <section class="player-view" id="player-view" aria-label="動画プレーヤー">
     <div class="player-head"><h2 id="player-title"></h2><span class="key-help">Tab / W A S D: 動画選択 · B / N: 前後の動画 · Z / X: 5秒 · C / V: 30秒 · ↑ / ↓: 音量 ±0.1 · M: ミュート · Shift+M: 全体ミュート · F: 等速 · G: 2.5倍 · H: 10倍 · Space: 再生/停止 · Shift+Space: 全体再生/停止</span><nav class="share-actions" aria-label="共有"><button type="button" id="copy-share">リンクをコピー</button><button type="button" id="share-x">X</button><button type="button" id="share-line">LINE</button><button type="button" id="share-threads">Threads</button></nav><button class="close" id="close-player">一覧に戻る</button></div>
     <div class="player-grid" id="player-grid"></div>
   </section>
   <script>
-    const VERSION = 'v1.1.0';
+    const VERSION = 'v1.2.0';
     const SIZES = [1, 4, 9, 16];
     const SITE = /^([a-z\d-]+\.)?spankbang\.(com|party)$/i;
     const VIDEO_ID = /^[a-z\d]{1,16}$/i;
-    const VIDEO_PATH = /^\/([a-z\d]{1,16})\/(?:video|embed|play)(?:\/|$)/i;
     const $ = selector => document.querySelector(selector);
     const status = $('#status'), playerView = $('#player-view'), grid = $('#player-grid'), slotCount = $('#slot-count');
     const selectedButton = $('#open-selected'), autoButton = $('#open-auto');
@@ -126,7 +139,7 @@
     function renderSelection() {
       $('#selection').innerHTML = selected.length
         ? selected.map((video, i) => `<li><span class="t" title="${esc(video.title)}">${esc(video.title)}</span><span class="kind">${video.url ? 'シークバー対応' : '埋め込み'}</span><button class="secondary" data-remove="${i}">削除</button></li>`).join('')
-        : '<li class="empty">ブックマークレットかURL貼り付けで動画を追加してください。</li>';
+        : '<li class="empty">ブックマークレットで動画を選ぶと、ここに表示されます。</li>';
       updateControls();
     }
     function setSelection(list) { selected = list.slice(0, 16); slotCount.value = String(selected.length ? countCapacity(selected.length) : 4); renderSelection(); }
@@ -335,36 +348,22 @@
       else if (key === 'h') video.playbackRate = video.playbackRate === 10 ? 1 : 10;
     }, true);
 
-    function addFromText(text) {
-      let added = 0, skipped = 0;
-      const list = [...selected];
-      for (const token of text.split(/\s+/).filter(Boolean)) {
-        let url;
-        try { url = new URL(token); } catch { skipped++; continue; }
-        const match = url.pathname.match(VIDEO_PATH);
-        if (!SITE.test(url.hostname) || !match) { skipped++; continue; }
-        if (list.some(video => video.id === match[1])) continue;
-        if (list.length >= 16) { skipped++; continue; }
-        let slug = url.pathname.split('/').filter(Boolean).at(-1) || '';
-        try { slug = decodeURIComponent(slug); } catch {}
-        const title = /^(video|embed|play)$/i.test(slug) || slug === match[1] ? `Video ${match[1]}` : slug.replace(/[+_-]+/g, ' ');
-        list.push({ id: match[1], host: url.hostname, title: title.slice(0, 180), url: '' });
-        added++;
-      }
-      setSelection(list);
-      setStatus(skipped ? `${added} 本追加しました。${skipped} 件はSpankBangの動画URLでないか、16本の上限を超えたため追加していません。` : `${added} 本追加しました。`, skipped > 0);
-    }
-
     function setupBookmarklet() {
       const link = $('#bookmarklet');
-      const code = `javascript:${encodeURIComponent(`(${sbqpBookmarklet})(${JSON.stringify(location.origin + location.pathname)})`)}`;
+      const code = `javascript:${encodeURIComponent(`(${sbqpBookmarklet})(${JSON.stringify(location.origin + location.pathname)},${JSON.stringify(VERSION)})`)}`;
       link.href = code;
-      link.addEventListener('click', event => { event.preventDefault(); $('#bookmarklet-status').textContent = 'このボタンはクリックではなく、ブックマークバーへドラッグして登録してください。'; });
+      // The version in the bookmark's name tells the user which build a registered bookmark holds.
+      link.textContent = `SB Multi ${VERSION}`;
+      document.querySelectorAll('.bookmarklet-name').forEach(name => { name.textContent = `SB Multi ${VERSION}`; });
+      link.addEventListener('click', event => { event.preventDefault(); $('#pc-status').textContent = 'このボタンはクリックではなく、ブックマークバーへドラッグして登録してください。'; });
       $('#copy-bookmarklet').addEventListener('click', async () => {
-        try { await navigator.clipboard.writeText(code); $('#bookmarklet-status').textContent = 'コードをコピーしました。新しいブックマークのURL欄に貼り付けてください。'; }
+        try { await navigator.clipboard.writeText(code); $('#mobile-status').textContent = 'コードをコピーしました。ブックマークのURL欄に貼り付けてください。'; }
         catch { prompt('このコードをコピーしてください', code); }
       });
-      if (location.protocol === 'file:') $('#bookmarklet-status').textContent = 'ローカルファイルで開いています。SpankBangのページからはこのファイルを開けないため、GitHub PagesのURLで開いてから登録してください。';
+      if (location.protocol === 'file:') {
+        const warning = 'ローカルファイルで開いています。SpankBangのページからはこのファイルを開けないため、GitHub PagesのURLで開いてから登録してください。';
+        $('#pc-status').textContent = warning; $('#mobile-status').textContent = warning;
+      }
     }
 
     function loadFromHash() {
@@ -387,7 +386,6 @@
     slotCount.addEventListener('change', updateControls);
     selectedButton.addEventListener('click', () => openPlayer(selected.map(({ shareIndex, ...video }) => video), false));
     autoButton.addEventListener('click', () => { openPlayer(selected.map(({ shareIndex, ...video }) => video), true); setStatus('順に自動再生中です。各動画は終了時またはNextで次へ進みます。'); });
-    $('#add-urls').addEventListener('click', () => { addFromText($('#paste').value); $('#paste').value = ''; });
     $('#close-player').addEventListener('click', closePlayer);
     $('#copy-share').addEventListener('click', shareCurrentUrl);
     $('#share-x').addEventListener('click', () => shareTo('x'));

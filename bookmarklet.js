@@ -1,10 +1,10 @@
 /* SpankBang Multi Player bookmarklet.
-   index.html serializes this function into a javascript: link with the player URL baked in,
+   index.html serializes this function into a javascript: link with the player URL and version baked in,
    so it must not reference anything outside its own body. It runs in the user's own tab on
    SpankBang, which is why no server-side request to SpankBang is needed: the video pages are
    read same-origin to find each video's MP4 URL, so the player can drive its own <video>.
    Use block comments only: the source is turned into a URL. */
-function sbqpBookmarklet(PLAYER_URL) {
+function sbqpBookmarklet(PLAYER_URL, VERSION) {
   const MAX = 16, KEY = 'sbqp-selected', PANEL_ID = 'sbqp-panel';
   /* 720p first: up to 16 streams play at once, so the sharpest file is rarely the best one. */
   const QUALITY = ['720p', '480p', '1080p', '320p', '240p', '4k'];
@@ -79,6 +79,8 @@ function sbqpBookmarklet(PLAYER_URL) {
 
   const panel = css(document.createElement('div'), 'position:fixed;z-index:2147483647;right:18px;bottom:18px;display:flex;flex-wrap:wrap;align-items:center;gap:10px;max-width:calc(100vw - 36px);padding:12px 14px;background:#16181ef0;border:1px solid #41444e;border-radius:14px;color:#f7f7fa;font:14px/1.4 system-ui,sans-serif;box-shadow:0 8px 30px #0008');
   panel.id = PANEL_ID;
+  const label = css(document.createElement('span'), 'flex-basis:100%;color:#aeb4c0;font-size:11px');
+  label.textContent = `SpankBang Multi Player ${VERSION || ''}`.trim();
   const count = css(document.createElement('span'), 'font-weight:650;min-width:96px');
   const message = css(document.createElement('span'), 'flex-basis:100%;color:#ffb4b4;font-size:12px;display:none');
   const current = location.pathname.match(VIDEO_PATH);
@@ -87,7 +89,7 @@ function sbqpBookmarklet(PLAYER_URL) {
   const open = button('Multi Playerで開く', true);
   const close = button('×', false);
   close.title = '閉じる';
-  panel.append(count);
+  panel.append(label, count);
   if (current) panel.append(addCurrent);
   panel.append(clear, open, close, message);
   document.body.append(panel);

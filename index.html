@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <title>SpankBang Multi Player v1.2.10 — Web</title>
+  <title>SpankBang Multi Player v1.2.11 — Web</title>
   <!-- The version query makes each release fetch its own bookmarklet.js instead of a copy the browser cached. Keep it equal to VERSION. -->
-  <script src="./bookmarklet.js?v=1.2.10"></script>
+  <script src="./bookmarklet.js?v=1.2.11"></script>
   <style>
     :root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#eff1f5;background:#111318;color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#111318}
     .sticky-controls{position:sticky;top:0;z-index:5;background:#111318;box-shadow:0 5px 14px #0005}header{display:flex;align-items:center;gap:16px;padding:14px 20px;background:#191c23;border-bottom:1px solid #30343d}h1{margin:0;font-size:18px;white-space:nowrap}h1 small{margin-left:5px;color:#aeb4c0;font-size:11px;font-weight:600}h2{margin:0 0 10px;font-size:16px}.brand-link{color:inherit;text-decoration:none;border-bottom:1px dashed #aeb4c0}.brand-link:hover{color:#c4f26a;border-bottom-style:solid}
@@ -34,7 +34,7 @@
 <body>
   <div class="sticky-controls">
     <header>
-      <h1><a class="brand-link" href="https://spankbang.com/" target="_blank" rel="noopener noreferrer">SpankBang</a> Multi Player <small>v1.2.10</small></h1>
+      <h1><a class="brand-link" href="https://spankbang.com/" target="_blank" rel="noopener noreferrer">SpankBang</a> Multi Player <small>v1.2.11</small></h1>
       <nav class="contacts" aria-label="連絡先"><a href="mailto:okcysk@gmail.com"><span class="contact-icon" aria-hidden="true">✉</span>okcysk@gmail.com</a><a href="https://x.com/okcysk46770" target="_blank" rel="noopener noreferrer"><span class="contact-icon" aria-hidden="true">𝕏</span>@okcysk46770</a></nav>
     </header>
     <p class="status" id="status" aria-live="polite"></p>
@@ -45,9 +45,9 @@
       <ol>
         <li>ブックマークバーを表示します（Chrome / Edge は <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd>、Mac は <kbd>⌘</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd>）。</li>
         <li>下の「<span class="bookmarklet-name">SB Multi</span>」ボタンをブックマークバーへドラッグして登録します（クリックでは登録されません）。</li>
-        <li>SpankBangで検索し、検索結果ページで登録したブックマークをクリックします。</li>
+        <li>SpankBangの動画一覧が出るページ（トップページ、検索結果、プレイリスト、チャンネルなど）で、登録したブックマークをクリックします。</li>
         <li>サムネイル左上のチェックで動画を最大16本選び、右下の「Multi Playerで開く」を押すと、新しいタブでプレーヤーが開きます。</li>
-        <li>別の検索ページに移ったら、もう一度ブックマークをクリックすると選択の続きができます。動画ページでは「この動画を追加」も使えます。</li>
+        <li>選択はブックマークをクリックするたびと、プレーヤーを開いた後にクリアされます。動画は1つのページの中で選んでください。動画ページでは「この動画を追加」も使えます。</li>
       </ol>
       <div class="row"><a class="bookmarklet" id="bookmarklet" href="#">SB Multi</a></div>
       <p class="note" id="pc-status"></p>
@@ -57,7 +57,7 @@
       <ol>
         <li>下の「コードをコピー」を押します。</li>
         <li>このページをブックマークに追加し、そのブックマークを編集します。名前を「<span class="bookmarklet-name">SB Multi</span>」に、URLをコピーしたコードに置き換えて保存します。</li>
-        <li>SpankBangで検索し、検索結果ページでブックマークを実行します。
+        <li>SpankBangの動画一覧が出るページ（トップページ、検索結果、プレイリストなど）でブックマークを実行します。
           <ul>
             <li>Android（Chrome）: アドレスバーに「SB Multi」と入力し、候補に出たブックマークをタップします。</li>
             <li>iPhone（Safari）: ブックマーク一覧を開き、「SB Multi」をタップします。</li>
@@ -74,7 +74,7 @@
     <div class="player-grid" id="player-grid"></div>
   </section>
   <script>
-    const VERSION = 'v1.2.10';
+    const VERSION = 'v1.2.11';
     const SIZES = [1, 2, 4, 9, 16];
     const SITE = /^([a-z\d-]+\.)?spankbang\.(com|party)$/i;
     const VIDEO_ID = /^[a-z\d]{1,16}$/i;

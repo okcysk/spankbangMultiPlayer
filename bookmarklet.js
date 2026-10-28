@@ -9,7 +9,11 @@ function sbqpBookmarklet(PLAYER_URL, VERSION) {
   /* 720p first: up to 16 streams play at once, so the sharpest file is rarely the best one. */
   const QUALITY = ['720p', '480p', '1080p', '320p', '240p', '4k'];
   const SITE = /(^|\.)spankbang\.(com|party)$/i;
-  const VIDEO_PATH = /^\/([a-z0-9]{1,16})\/video(?:\/|$)/i;
+  /* Video links come in three shapes: /<id>/video/<slug>, /<id>/embed/, and, inside a playlist,
+     /<playlist id>-<id>/playlist/<slug>. A bare /<id>/playlist/ is the playlist itself, not a video. */
+  const VIDEO_PATH = /^\/([a-z0-9]{1,16})\/(?:video|embed)(?:\/|$)/i;
+  const PLAYLIST_ITEM = /^\/[a-z0-9]{1,16}-([a-z0-9]{1,16})\/playlist(?:\/|$)/i;
+  const videoId = path => (path.match(VIDEO_PATH) || path.match(PLAYLIST_ITEM) || [])[1] || '';
   if (!SITE.test(location.hostname)) { alert('SpankBangのページで実行してください。'); return; }
   if (window.__sbqpBookmarklet) { window.__sbqpBookmarklet.scan(); return; }
 
@@ -28,11 +32,14 @@ function sbqpBookmarklet(PLAYER_URL, VERSION) {
     let url;
     try { url = new URL(anchor.href, location.href); } catch (e) { return null; }
     if (!SITE.test(url.hostname)) return null;
-    const match = url.pathname.match(VIDEO_PATH);
-    if (!match) return null;
+    const id = videoId(url.pathname);
+    if (!id) return null;
     const title = anchor.getAttribute('title') || anchor.getAttribute('aria-label') ||
-      anchor.querySelector('img')?.alt || slugTitle(url) || `Video ${match[1]}`;
-    return { id: match[1], url: url.origin + url.pathname, title: title.trim().replace(/\s+/g, ' ').slice(0, 180) };
+      anchor.querySelector('img')?.alt || slugTitle(url) || `Video ${id}`;
+    /* An embed page may not carry the stream list, so read the video page instead; a playlist item page plays the video itself.
+       The page is read from this tab's own host, since a link to another language host would be a cross-origin fetch. */
+    const page = location.origin + (/\/embed(\/|$)/i.test(url.pathname) ? `/${id}/video/` : url.pathname);
+    return { id, url: page, title: title.trim().replace(/\s+/g, ' ').slice(0, 180) };
   }
 
   /* SpankBang lists its files in a stream_data object keyed by quality; older pages only have <source> tags. */
@@ -54,10 +61,13 @@ function sbqpBookmarklet(PLAYER_URL, VERSION) {
     return text.match(/https:\/\/[^"'\s<>]+\.mp4(?:\?[^"'\s<>]*)?/i)?.[0] || '';
   }
   const streams = new Map();
+  const read = url => fetch(url, { credentials: 'include' })
+    .then(response => response.ok ? response.text() : '').then(bestMp4).catch(() => '');
   function resolve(video) {
     if (!streams.has(video.id)) {
-      streams.set(video.id, fetch(video.url || `/${video.id}/video/`, { credentials: 'include' })
-        .then(response => response.ok ? response.text() : '').then(bestMp4).catch(() => ''));
+      /* If the linked page has no MP4 (a playlist page laid out differently, say), try the plain video page. */
+      const plain = `/${video.id}/video/`;
+      streams.set(video.id, read(video.url || plain).then(url => url || (video.url && !video.url.endsWith(plain) ? read(plain) : '')));
     }
     return streams.get(video.id);
   }
@@ -82,7 +92,7 @@ function sbqpBookmarklet(PLAYER_URL, VERSION) {
   label.textContent = `SpankBang Multi Player ${VERSION || ''}`.trim();
   const count = css(document.createElement('span'), 'font-weight:650;min-width:96px');
   const message = css(document.createElement('span'), 'flex-basis:100%;color:#ffb4b4;font-size:12px;display:none');
-  const current = location.pathname.match(VIDEO_PATH);
+  const current = videoId(location.pathname);
   const addCurrent = button('この動画を追加', false);
   const clear = button('クリア', false);
   const open = button('Multi Playerで開く', true);
@@ -115,7 +125,7 @@ function sbqpBookmarklet(PLAYER_URL, VERSION) {
   function refresh() {
     count.textContent = `${selected.length} / ${MAX} 選択`;
     open.disabled = selected.length < 1; open.style.opacity = open.disabled ? '.42' : '1';
-    if (current) addCurrent.disabled = has(current[1]);
+    if (current) addCurrent.disabled = has(current);
     for (const box of document.querySelectorAll('.sbqp-check')) box.checked = has(box.dataset.videoId);
   }
 
@@ -128,12 +138,24 @@ function sbqpBookmarklet(PLAYER_URL, VERSION) {
     refresh();
   }
 
+  /* A thumbnail link holds an image or preview, or is at least thumbnail-sized; a title link is a short line of text. */
+  const isThumb = anchor => {
+    if (anchor.querySelector('img,picture,video')) return true;
+    const box = anchor.getBoundingClientRect();
+    return box.width >= 100 && box.height >= 56;
+  };
+  /* Any page under the site works: the top page, playlists, channels, related videos and so on. */
   function scan() {
-    for (const anchor of document.querySelectorAll('a[href*="/video/"]')) {
-      /* Only mark thumbnail links, never title links, so each card gets one checkbox. */
-      if (!anchor.querySelector('img') || anchor.querySelector('.sbqp-check')) continue;
+    for (const anchor of document.querySelectorAll('a[href]')) {
+      if (anchor.dataset.sbqp || panel.contains(anchor)) continue;
       const info = videoInfo(anchor);
-      if (!info) continue;
+      if (!info) { anchor.dataset.sbqp = 'skip'; continue; }
+      /* Not done yet: a lazy-loaded card may only get its image later. */
+      if (!isThumb(anchor)) continue;
+      anchor.dataset.sbqp = 'done';
+      /* One checkbox per card, even when the card links the same video from several thumbnails. */
+      const card = anchor.parentElement?.parentElement || anchor.parentElement;
+      if (card && [...card.querySelectorAll('.sbqp-check')].some(box => box.dataset.videoId === info.id)) continue;
       if (getComputedStyle(anchor).position === 'static') anchor.style.position = 'relative';
       const box = css(document.createElement('input'), 'position:absolute;z-index:2147483646;top:8px;left:8px;width:32px;height:32px;margin:0;accent-color:#c4f26a;cursor:pointer;filter:drop-shadow(0 1px 3px #000)');
       box.type = 'checkbox'; box.className = 'sbqp-check'; box.dataset.videoId = info.id;
@@ -150,7 +172,7 @@ function sbqpBookmarklet(PLAYER_URL, VERSION) {
 
   addCurrent.addEventListener('click', () => {
     const title = document.querySelector('h1')?.textContent || document.title;
-    toggle({ id: current[1], url: location.origin + location.pathname, title: title.trim().replace(/\s+/g, ' ').slice(0, 180) }, true);
+    toggle({ id: current, url: location.origin + location.pathname, title: title.trim().replace(/\s+/g, ' ').slice(0, 180) }, true);
   });
   clear.addEventListener('click', () => { selected = []; refresh(); });
   open.addEventListener('click', async () => {
@@ -172,6 +194,7 @@ function sbqpBookmarklet(PLAYER_URL, VERSION) {
   close.addEventListener('click', () => {
     observer.disconnect(); panel.remove();
     for (const box of document.querySelectorAll('.sbqp-check')) box.remove();
+    for (const anchor of document.querySelectorAll('a[data-sbqp]')) delete anchor.dataset.sbqp;
     delete window.__sbqpBookmarklet;
   });
 

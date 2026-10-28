@@ -149,7 +149,7 @@ function sbqpBookmarklet(PLAYER_URL, VERSION) {
     open.disabled = true; open.textContent = '動画URLを取得中…';
     const urls = await Promise.all(selected.map(resolve));
     const slots = selected.map((video, i) => ({ i, id: video.id, h: location.host, t: video.title, u: urls[i] }));
-    const state = { v: 1, n: [1, 4, 9, 16].find(n => n >= slots.length), c: slots.length, slots };
+    const state = { v: 1, n: [1, 2, 4, 9, 16].find(n => n >= slots.length), c: slots.length, slots };
     const target = `${PLAYER_URL}#share=${encodeState(state)}`;
     const missing = urls.filter(url => !url).length;
     if (missing) notice(`${missing}本は動画URLを取得できなかったため、埋め込みプレーヤー（シークバーなし）で再生します。`);

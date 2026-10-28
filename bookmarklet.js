@@ -1,10 +1,13 @@
-/* SpankBang Quad Player bookmarklet.
+/* SpankBang Multi Player bookmarklet.
    index.html serializes this function into a javascript: link with the player URL baked in,
    so it must not reference anything outside its own body. It runs in the user's own tab on
-   SpankBang, which is why no server-side request to SpankBang is needed.
+   SpankBang, which is why no server-side request to SpankBang is needed: the video pages are
+   read same-origin to find each video's MP4 URL, so the player can drive its own <video>.
    Use block comments only: the source is turned into a URL. */
 function sbqpBookmarklet(PLAYER_URL) {
-  const MAX = 4, KEY = 'sbqp-selected', PANEL_ID = 'sbqp-panel';
+  const MAX = 16, KEY = 'sbqp-selected', PANEL_ID = 'sbqp-panel';
+  /* 720p first: up to 16 streams play at once, so the sharpest file is rarely the best one. */
+  const QUALITY = ['720p', '480p', '1080p', '320p', '240p', '4k'];
   const SITE = /(^|\.)spankbang\.(com|party)$/i;
   const VIDEO_PATH = /^\/([a-z0-9]{1,16})\/video(?:\/|$)/i;
   if (!SITE.test(location.hostname)) { alert('SpankBangのページで実行してください。'); return; }
@@ -30,7 +33,41 @@ function sbqpBookmarklet(PLAYER_URL) {
     if (!match) return null;
     const title = anchor.getAttribute('title') || anchor.getAttribute('aria-label') ||
       anchor.querySelector('img')?.alt || slugTitle(url) || `Video ${match[1]}`;
-    return { id: match[1], title: title.trim().replace(/\s+/g, ' ').slice(0, 180) };
+    return { id: match[1], url: url.origin + url.pathname, title: title.trim().replace(/\s+/g, ' ').slice(0, 180) };
+  }
+
+  /* SpankBang lists its files in a stream_data object keyed by quality; older pages only have <source> tags. */
+  function bestMp4(html) {
+    const text = html.replace(/\\\//g, '/').replace(/&amp;/g, '&');
+    const byQuality = {};
+    const data = text.match(/stream_data\s*=\s*(\{[\s\S]*?\})\s*;/);
+    if (data) {
+      for (const entry of data[1].matchAll(/["']?(\w+)["']?\s*:\s*\[([^\]]*)\]/g)) {
+        const url = entry[2].match(/https:\/\/[^"'\s]+/);
+        if (url && /\.mp4(\?|$)/i.test(url[0])) byQuality[entry[1].toLowerCase()] = url[0];
+      }
+    }
+    for (const quality of QUALITY) if (byQuality[quality]) return byQuality[quality];
+    const any = Object.values(byQuality)[0];
+    if (any) return any;
+    const source = text.match(/<source\b[^>]*\bsrc=["'](https:\/\/[^"']+\.mp4[^"']*)["']/i);
+    if (source) return source[1];
+    return text.match(/https:\/\/[^"'\s<>]+\.mp4(?:\?[^"'\s<>]*)?/i)?.[0] || '';
+  }
+  const streams = new Map();
+  function resolve(video) {
+    if (!streams.has(video.id)) {
+      streams.set(video.id, fetch(video.url || `/${video.id}/video/`, { credentials: 'include' })
+        .then(response => response.ok ? response.text() : '').then(bestMp4).catch(() => ''));
+    }
+    return streams.get(video.id);
+  }
+
+  function encodeState(state) {
+    const bytes = new TextEncoder().encode(JSON.stringify(state));
+    let binary = '';
+    for (const byte of bytes) binary += String.fromCharCode(byte);
+    return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
   }
 
   /* Styles are set through the CSSOM rather than a <style> element so a strict style-src CSP cannot block them. */
@@ -47,7 +84,7 @@ function sbqpBookmarklet(PLAYER_URL) {
   const current = location.pathname.match(VIDEO_PATH);
   const addCurrent = button('この動画を追加', false);
   const clear = button('クリア', false);
-  const open = button('Quad Playerで開く', true);
+  const open = button('Multi Playerで開く', true);
   const close = button('×', false);
   close.title = '閉じる';
   panel.append(count);
@@ -58,7 +95,7 @@ function sbqpBookmarklet(PLAYER_URL) {
   let messageTimer;
   function notice(text) {
     message.textContent = text; message.style.display = 'block';
-    clearTimeout(messageTimer); messageTimer = setTimeout(() => { message.style.display = 'none'; }, 2200);
+    clearTimeout(messageTimer); messageTimer = setTimeout(() => { message.style.display = 'none'; }, 2600);
   }
 
   function refresh() {
@@ -73,6 +110,7 @@ function sbqpBookmarklet(PLAYER_URL) {
     if (on && !has(info.id)) {
       if (selected.length >= MAX) { notice(`選択できるのは${MAX}本までです。`); refresh(); return; }
       selected.push(info);
+      resolve(info);
     } else if (!on) selected = selected.filter(v => v.id !== info.id);
     refresh();
   }
@@ -99,16 +137,22 @@ function sbqpBookmarklet(PLAYER_URL) {
 
   addCurrent.addEventListener('click', () => {
     const title = document.querySelector('h1')?.textContent || document.title;
-    toggle({ id: current[1], title: title.trim().replace(/\s+/g, ' ').slice(0, 180) }, true);
+    toggle({ id: current[1], url: location.origin + location.pathname, title: title.trim().replace(/\s+/g, ' ').slice(0, 180) }, true);
   });
   clear.addEventListener('click', () => { selected = []; refresh(); });
-  open.addEventListener('click', () => {
+  open.addEventListener('click', async () => {
     if (!selected.length) return;
-    const params = new URLSearchParams({ h: location.host });
-    for (const v of selected) { params.append('v', v.id); params.append('t', v.title); }
-    const target = `${PLAYER_URL}#${params}`;
-    const win = window.open(target, '_blank');
-    if (win) win.opener = null; else location.href = target;
+    /* Open the tab before awaiting the lookups: a window.open after a long await loses the click's popup permission. */
+    const win = window.open('', '_blank');
+    open.disabled = true; open.textContent = '動画URLを取得中…';
+    const urls = await Promise.all(selected.map(resolve));
+    const slots = selected.map((video, i) => ({ i, id: video.id, h: location.host, t: video.title, u: urls[i] }));
+    const state = { v: 1, n: [1, 4, 9, 16].find(n => n >= slots.length), c: slots.length, slots };
+    const target = `${PLAYER_URL}#share=${encodeState(state)}`;
+    const missing = urls.filter(url => !url).length;
+    if (missing) notice(`${missing}本は動画URLを取得できなかったため、埋め込みプレーヤー（シークバーなし）で再生します。`);
+    if (win) { win.opener = null; win.location.href = target; } else location.href = target;
+    open.textContent = 'Multi Playerで開く'; refresh();
   });
   close.addEventListener('click', () => {
     observer.disconnect(); panel.remove();
@@ -118,4 +162,5 @@ function sbqpBookmarklet(PLAYER_URL) {
 
   window.__sbqpBookmarklet = { scan };
   scan(); refresh();
+  for (const video of selected) resolve(video);
 }

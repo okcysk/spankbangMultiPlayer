@@ -4,82 +4,132 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <title>SpankBang Quad Player — Web</title>
+  <title>SpankBang Multi Player v1.1.0 — Web</title>
   <script src="./bookmarklet.js"></script>
   <style>
-    :root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#eff1f5;background:#111318;color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#111318}header{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:16px;padding:14px 20px;background:#191c23;border-bottom:1px solid #30343d}h1{margin:0;font-size:18px;white-space:nowrap}h2{margin:0 0 10px;font-size:16px}
-    main{display:grid;gap:16px;max-width:900px;margin:18px auto;padding:0 18px 24px}.panel{padding:16px;border:1px solid #323741;border-radius:10px;background:#1b1e25}.panel p,.panel ol{margin:0 0 10px;color:#c6cad2;font-size:14px;line-height:1.6}.panel ol{padding-left:20px}
+    :root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#eff1f5;background:#111318;color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#111318}
+    .sticky-controls{position:sticky;top:0;z-index:5;background:#111318;box-shadow:0 5px 14px #0005}header{display:flex;align-items:center;gap:16px;padding:14px 20px;background:#191c23;border-bottom:1px solid #30343d}h1{margin:0;font-size:18px;white-space:nowrap}h1 small{margin-left:5px;color:#aeb4c0;font-size:11px;font-weight:600}h2{margin:0 0 10px;font-size:16px}.brand-link{color:inherit;text-decoration:none;border-bottom:1px dashed #aeb4c0}.brand-link:hover{color:#c4f26a;border-bottom-style:solid}
+    .contacts{display:flex;align-items:center;gap:12px;margin-left:auto;white-space:nowrap}.contacts a{display:inline-flex;align-items:center;gap:6px;color:#c6cad2;text-decoration:none;font-size:13px}.contacts a:hover{color:#c4f26a;text-decoration:underline}.contact-icon{display:inline-grid;place-items:center;width:20px;height:20px;border:1px solid #59606d;border-radius:50%;font-size:12px;font-weight:800}
+    .toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;max-width:900px;margin:10px auto 6px;padding:0 18px}.toolbar label,.toolbar span{color:#c6cad2}.toolbar select{padding:8px;border:1px solid #454b57;border-radius:7px;background:#20232a;color:#fff}
     button{border:0;border-radius:8px;padding:10px 15px;background:#c4f26a;color:#19210e;font:inherit;font-weight:750;cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}button.secondary{background:#30343d;color:#f2f3f6}.row{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+    .status{max-width:900px;min-height:1.4em;margin:0 auto;padding:0 18px 10px;color:#aeb4c0;font-size:14px}.status.error{color:#ffaaa6}
+    main{display:grid;gap:16px;max-width:900px;margin:8px auto;padding:0 18px 24px}.panel{padding:16px;border:1px solid #323741;border-radius:10px;background:#1b1e25}.panel p,.panel ol{margin:0 0 10px;color:#c6cad2;font-size:14px;line-height:1.6}.panel ol{padding-left:20px}.panel .note{margin:10px 0 0;color:#aeb4c0;font-size:13px}
     .bookmarklet{display:inline-block;padding:10px 16px;border:2px dashed #c4f26a;border-radius:8px;color:#c4f26a;font-weight:750;text-decoration:none;cursor:grab}
     textarea{width:100%;min-height:90px;margin-bottom:10px;padding:10px 12px;border:1px solid #454b57;border-radius:8px;background:#101217;color:inherit;font:13px/1.5 ui-monospace,Consolas,monospace;resize:vertical}
-    .list{display:grid;gap:8px;margin:0 0 12px;padding:0;list-style:none}.list li{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid #323741;border-radius:8px;background:#15171d;font-size:14px}.list .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.list .id{color:#818895;font:12px ui-monospace,Consolas,monospace}.list button{padding:5px 10px;font-size:12px}.list .empty{justify-content:center;color:#818895}
-    .status{min-height:1.4em;margin:0;color:#aeb4c0;font-size:14px}.status.error{color:#ffaaa6}
-    .player-view{position:fixed;inset:0;z-index:10;display:none;background:#07080a}.player-view.open{display:grid;grid-template-rows:auto 1fr}.player-head{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#171a20}.player-head h2{margin:0;font-size:15px}.player-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:3px;min-height:0}.player-grid.n1{grid-template-columns:1fr;grid-template-rows:1fr}.player-grid.n2{grid-template-rows:1fr}.slot{position:relative;min-width:0;min-height:0;background:#000}.slot iframe{width:100%;height:100%;border:0}.slot-label{position:absolute;left:8px;top:8px;z-index:1;max-width:75%;padding:4px 7px;border-radius:5px;background:#000a;font-size:12px;pointer-events:none}.slot.vacant{display:grid;place-items:center;color:#555b66;font-size:13px}.close{border:1px solid #555b66;border-radius:7px;padding:8px 12px;background:#262a32;color:#fff;font-weight:400}
-    @media(max-width:650px){header{padding:12px 14px}main{padding:0 12px 20px}.player-grid,.player-grid.n2{grid-template-columns:1fr;grid-template-rows:none;grid-auto-rows:minmax(200px,1fr);overflow:auto}.slot.vacant{display:none}}
+    .list{display:grid;gap:8px;margin:0;padding:0;list-style:none}.list li{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid #323741;border-radius:8px;background:#15171d;font-size:14px}.list .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.list .kind{flex:none;color:#818895;font-size:12px}.list button{padding:5px 10px;font-size:12px}.list .empty{justify-content:center;color:#818895}
+    .player-view{position:fixed;inset:0;z-index:10;display:none;background:#07080a}.player-view.open{display:grid;grid-template-rows:auto 1fr}.player-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;background:#171a20}.player-head h2{margin:0;font-size:15px}.key-help{flex:1;color:#aeb4c0;font-size:12px}
+    .share-actions{display:flex;align-items:center;gap:6px}.share-actions button,.close{border:1px solid #555b66;border-radius:7px;padding:7px 9px;background:#262a32;color:#fff;font:600 12px system-ui,sans-serif}.share-actions button:hover,.close:hover{border-color:#c4f26a;color:#c4f26a}.close{padding:8px 12px}
+    .player-grid{display:grid;gap:3px;min-height:0;background:#000}.slot{position:relative;min-width:0;min-height:0;background:#000;overflow:hidden}.slot.keyboard-focus{outline:3px solid #c4f26a;outline-offset:-3px}.slot video,.slot iframe{display:block;width:100%;height:100%;border:0;object-fit:contain}
+    .slot-actions{position:absolute;right:8px;top:8px;z-index:2;display:flex;gap:5px}.slot-actions button{border:1px solid #555b66;border-radius:7px;padding:7px 10px;background:#262a32;color:#fff;font-weight:600}
+    /* Seek bar modeled on the extension's: a thin always-visible bar with the playback speed beside it. */
+    .seek{position:absolute;left:0;right:0;bottom:0;z-index:2;display:none;align-items:center;gap:8px;height:18px;padding:0 6px 0 0;background:#090a0bcc}.slot.has-video .seek{display:flex}
+    .seek input{flex:1;min-width:0;height:10px;margin:0;padding:0;appearance:none;-webkit-appearance:none;background:transparent;cursor:pointer;outline:none}
+    .seek input::-webkit-slider-runnable-track{height:4px;background:linear-gradient(to right,#c4f26a 0 var(--played,0%),#ffffff70 var(--played,0%) 100%)}.seek input::-moz-range-track{height:4px;background:#ffffff70}.seek input::-moz-range-progress{height:4px;background:#c4f26a}
+    .seek input::-webkit-slider-thumb{-webkit-appearance:none;width:10px;height:10px;margin-top:-3px;border:0;border-radius:50%;background:#c4f26a}.seek input::-moz-range-thumb{width:10px;height:10px;border:0;border-radius:50%;background:#c4f26a}.seek input:focus-visible{filter:drop-shadow(0 0 4px #c4f26a)}
+    .seek .time,.seek .speed{flex:none;color:#fff;font:600 11px/1 system-ui,sans-serif;text-shadow:0 1px 3px #000;white-space:nowrap}.seek .speed{min-width:38px;text-align:right}.seek button{flex:none;padding:0 4px;background:none;color:#fff;font-size:12px;line-height:1}.seek .volume{flex:0 0 64px}
+    .slot-message{position:absolute;inset:auto 8px 26px;z-index:2;padding:4px 7px;border-radius:5px;background:#000b;color:#ffd5d5;font-size:12px;pointer-events:none}
+    @media(max-width:700px){header{align-items:flex-start;flex-direction:column}.contacts{margin-left:0;flex-wrap:wrap}main{padding:0 12px 20px}.player-view.open{overflow:auto}.player-grid{overflow:auto}.slot{min-height:230px}.key-help{display:none}.share-actions{order:3;width:100%;justify-content:flex-end}.seek .volume{display:none}}
   </style>
 </head>
 <body>
-  <header><h1>SpankBang Quad Player <small>· Web</small></h1></header>
+  <div class="sticky-controls">
+    <header>
+      <h1><a class="brand-link" href="https://spankbang.com/" target="_blank" rel="noopener noreferrer">SpankBang</a> Multi Player <small>v1.1.0</small></h1>
+      <nav class="contacts" aria-label="連絡先"><a href="mailto:okcysk@gmail.com"><span class="contact-icon" aria-hidden="true">✉</span>okcysk@gmail.com</a><a href="https://x.com/okcysk46770" target="_blank" rel="noopener noreferrer"><span class="contact-icon" aria-hidden="true">𝕏</span>@okcysk46770</a></nav>
+    </header>
+    <div class="toolbar">
+      <label for="slot-count">同時再生数</label>
+      <select id="slot-count"><option value="1">1</option><option value="4" selected>4</option><option value="9">9</option><option value="16">16</option></select>
+      <span id="selection-count">0 / 4 選択</span>
+      <button class="secondary" id="clear">選択解除</button>
+      <button id="open-selected" disabled>選択した動画を再生</button>
+      <button id="open-auto" disabled>順に自動再生</button>
+    </div>
+    <p class="status" id="status" aria-live="polite"></p>
+  </div>
   <main>
     <section class="panel" aria-labelledby="selection-heading">
-      <h2 id="selection-heading">選択中の動画 <span id="selection-count">0 / 4</span></h2>
+      <h2 id="selection-heading">選択中の動画</h2>
       <ul class="list" id="selection"></ul>
-      <div class="row"><button id="play" disabled>再生</button><button class="secondary" id="clear">すべて解除</button></div>
-      <p class="status" id="status" aria-live="polite"></p>
     </section>
     <section class="panel" aria-labelledby="bookmarklet-heading">
       <h2 id="bookmarklet-heading">ブックマークレットで選ぶ</h2>
       <ol>
         <li>下のボタンをブックマークバーへドラッグして登録します。</li>
         <li>SpankBangで検索し、結果ページで登録したブックマークをクリックします。</li>
-        <li>サムネイルのチェックで最大4本選び、「Quad Playerで開く」を押します。ページを移動したら、もう一度ブックマークをクリックすると選択の続きができます。</li>
+        <li>サムネイルのチェックで最大16本選び、「Multi Playerで開く」を押します。ページを移動したら、もう一度ブックマークをクリックすると選択の続きができます。</li>
       </ol>
-      <div class="row"><a class="bookmarklet" id="bookmarklet" href="#">SB Quad 選択</a><button class="secondary" id="copy-bookmarklet">コードをコピー</button></div>
-      <p class="status" id="bookmarklet-status">スマホでは、コピーしたコードをURLとしてブックマークを作成し、SpankBangのページでアドレスバーにそのブックマーク名を入力して実行します。</p>
+      <div class="row"><a class="bookmarklet" id="bookmarklet" href="#">SB Multi 選択</a><button class="secondary" id="copy-bookmarklet">コードをコピー</button></div>
+      <p class="note" id="bookmarklet-status">スマホでは、コピーしたコードをURLとしてブックマークを作成し、SpankBangのページでアドレスバーにそのブックマーク名を入力して実行します。</p>
     </section>
     <section class="panel" aria-labelledby="paste-heading">
       <h2 id="paste-heading">URLを貼り付けて追加</h2>
-      <textarea id="paste" placeholder="https://spankbang.com/abc12/video/...&#10;1行に1つずつ、最大4つ" aria-label="動画URL"></textarea>
+      <textarea id="paste" placeholder="https://spankbang.com/abc12/video/...&#10;1行に1つずつ" aria-label="動画URL"></textarea>
       <button class="secondary" id="add-urls">追加</button>
+      <p class="note">貼り付けた動画は埋め込みプレーヤーで再生されるため、シークバーとキー操作は使えません。</p>
     </section>
   </main>
-  <section class="player-view" id="player-view" aria-label="4分割プレーヤー"><div class="player-head"><h2>SpankBang Quad Player</h2><button class="close" id="close-player">一覧に戻る</button></div><div class="player-grid" id="player-grid"></div></section>
+  <section class="player-view" id="player-view" aria-label="動画プレーヤー">
+    <div class="player-head"><h2 id="player-title"></h2><span class="key-help">Tab / W A S D: 動画選択 · B / N: 前後の動画 · Z / X: 5秒 · C / V: 30秒 · ↑ / ↓: 音量 ±0.1 · M: ミュート · Shift+M: 全体ミュート · F: 等速 · G: 2.5倍 · H: 10倍 · Space: 再生/停止 · Shift+Space: 全体再生/停止</span><nav class="share-actions" aria-label="共有"><button type="button" id="copy-share">リンクをコピー</button><button type="button" id="share-x">X</button><button type="button" id="share-line">LINE</button><button type="button" id="share-threads">Threads</button></nav><button class="close" id="close-player">一覧に戻る</button></div>
+    <div class="player-grid" id="player-grid"></div>
+  </section>
   <script>
-    const MAX = 4;
+    const VERSION = 'v1.1.0';
+    const SIZES = [1, 4, 9, 16];
     const SITE = /^([a-z\d-]+\.)?spankbang\.(com|party)$/i;
     const VIDEO_ID = /^[a-z\d]{1,16}$/i;
     const VIDEO_PATH = /^\/([a-z\d]{1,16})\/(?:video|embed|play)(?:\/|$)/i;
-    let selected = [];
     const $ = selector => document.querySelector(selector);
-    const status = $('#status');
-    const playerView = $('#player-view');
-    const escapeHtml = value => String(value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
-    const setStatus = (text, error) => { status.textContent = text; status.className = error ? 'status error' : 'status'; };
+    const status = $('#status'), playerView = $('#player-view'), grid = $('#player-grid'), slotCount = $('#slot-count');
+    const selectedButton = $('#open-selected'), autoButton = $('#open-auto');
+    // Each video: { id, host, title, url } where url is the direct MP4 the bookmarklet found, or '' for embed-only.
+    let selected = [], slots = [], autoQueue = [], autoNextIndex = 0, shareTimer = null;
+    const esc = value => String(value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+    const setStatus = (text, error = false) => { status.textContent = text; status.className = error ? 'status error' : 'status'; };
+    const targetCount = () => Number(slotCount.value);
+    const countCapacity = count => SIZES.find(size => size >= count) || 16;
+    const formatTime = seconds => { if (!Number.isFinite(seconds)) return '0:00'; const s = Math.floor(seconds), h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60, r = String(s % 60).padStart(2, '0'); return h ? `${h}:${String(m).padStart(2, '0')}:${r}` : `${m}:${r}`; };
 
-    // The URL hash is the selection's only storage: the bookmarklet hands videos over through it,
-    // and keeping it in sync makes a reload or a copied link reopen the same set.
-    function readHash() {
-      const params = new URLSearchParams(location.hash.slice(1));
-      const host = SITE.test(params.get('h') || '') ? params.get('h') : 'spankbang.com';
-      const titles = params.getAll('t');
-      return params.getAll('v').map((id, i) => ({ id, host, title: (titles[i] || '').slice(0, 180) || `Video ${id}` }))
-        .filter(video => VIDEO_ID.test(video.id)).slice(0, MAX);
+    // Share state: the bookmarklet hands videos over in this format, and the open player keeps it
+    // current (position, speed, mute) so a reload or a shared link reopens the same view.
+    function encodeShareState(state) { const bytes = new TextEncoder().encode(JSON.stringify(state)); let binary = ''; for (const byte of bytes) binary += String.fromCharCode(byte); return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
+    function validMediaUrl(value) { try { const url = new URL(value); return url.protocol === 'https:' && /\.mp4$/i.test(url.pathname) ? url.href : ''; } catch { return ''; } }
+    function decodeShareState(value) {
+      try {
+        const base64 = value.replace(/-/g, '+').replace(/_/g, '/'), binary = atob(base64 + '='.repeat((4 - base64.length % 4) % 4));
+        const state = JSON.parse(new TextDecoder().decode(Uint8Array.from(binary, ch => ch.charCodeAt(0))));
+        if (state?.v !== 1 || !SIZES.includes(Number(state.n)) || !Array.isArray(state.slots)) return null;
+        state.slots = state.slots.slice(0, 16).filter(item => item && VIDEO_ID.test(item.id)).map((item, index) => ({
+          ...item, h: SITE.test(item.h || '') ? item.h : 'spankbang.com', u: validMediaUrl(item.u),
+          t: String(item.t || `Video ${item.id}`).slice(0, 180), i: Number.isInteger(item.i) ? item.i : index
+        }));
+        return state;
+      } catch { return null; }
     }
-    function writeHash() {
-      const params = new URLSearchParams();
-      if (selected.length) params.set('h', selected[0].host);
-      for (const video of selected) { params.append('v', video.id); params.append('t', video.title); }
-      history.replaceState(null, '', selected.length ? `#${params}` : location.pathname + location.search);
+    function updateShareUrl() {
+      if (!playerView.classList.contains('open')) return;
+      const state = { v: 1, n: targetCount(), c: slots.length, slots: slots.filter(slot => slot.current).map(slot => {
+        const video = slot.video, current = slot.current;
+        return { i: slot.position, id: current.id, h: current.host, t: current.title, u: slot.video ? current.url : '',
+          p: video && Number.isFinite(video.currentTime) ? Math.round(video.currentTime) : 0, r: video?.playbackRate || 1, m: video ? video.muted : true };
+      }) };
+      history.replaceState(null, '', `${location.pathname}${location.search}#share=${encodeShareState(state)}`);
     }
+    async function shareCurrentUrl() { updateShareUrl(); const url = location.href; try { await navigator.clipboard.writeText(url); const button = $('#copy-share'), label = button.textContent; button.textContent = 'コピーしました'; setTimeout(() => button.textContent = label, 1400); } catch { prompt('このリンクをコピーしてください', url); } }
+    function shareTo(service) { updateShareUrl(); const url = encodeURIComponent(location.href), text = encodeURIComponent('SpankBang Multi Player'); const links = { x: `https://twitter.com/intent/tweet?url=${url}&text=${text}`, line: `https://social-plugins.line.me/lineit/share?url=${url}`, threads: `https://www.threads.net/intent/post?text=${text}%20${url}` }; window.open(links[service], '_blank', 'noopener,noreferrer'); }
 
-    function render() {
-      $('#selection-count').textContent = `${selected.length} / ${MAX}`;
-      $('#play').disabled = !selected.length;
+    function updateControls() {
+      $('#selection-count').textContent = `${selected.length} / ${targetCount()} 選択`;
+      selectedButton.disabled = !selected.length || selected.length > targetCount();
+      autoButton.disabled = !selected.length;
+    }
+    function renderSelection() {
       $('#selection').innerHTML = selected.length
-        ? selected.map((video, i) => `<li><span class="t" title="${escapeHtml(video.title)}">${escapeHtml(video.title)}</span><span class="id">${escapeHtml(video.id)}</span><button class="secondary" data-remove="${i}">削除</button></li>`).join('')
+        ? selected.map((video, i) => `<li><span class="t" title="${esc(video.title)}">${esc(video.title)}</span><span class="kind">${video.url ? 'シークバー対応' : '埋め込み'}</span><button class="secondary" data-remove="${i}">削除</button></li>`).join('')
         : '<li class="empty">ブックマークレットかURL貼り付けで動画を追加してください。</li>';
-      writeHash();
+      updateControls();
     }
+    function setSelection(list) { selected = list.slice(0, 16); slotCount.value = String(selected.length ? countCapacity(selected.length) : 4); renderSelection(); }
 
     function embedUrl(video) {
       const url = new URL(`https://${video.host}/${encodeURIComponent(video.id)}/embed/`);
@@ -88,44 +138,226 @@
       url.searchParams.set('muted', '1');
       return url.href;
     }
-    function openPlayer() {
-      if (!selected.length) return;
-      const grid = $('#player-grid');
-      grid.className = `player-grid n${selected.length}`;
-      const slots = selected.length > 2 ? MAX : selected.length;
-      grid.innerHTML = Array.from({ length: slots }, (_, i) => {
-        const video = selected[i];
-        return video
-          ? `<div class="slot"><span class="slot-label">${escapeHtml(video.title)}</span><iframe src="${escapeHtml(embedUrl(video))}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" title="Video ${i + 1}"></iframe></div>`
-          : '<div class="slot vacant">空き</div>';
-      }).join('');
-      playerView.classList.add('open');
+
+    function makeSlot(index, auto) {
+      const element = document.createElement('div');
+      element.className = 'slot'; element.tabIndex = -1;
+      element.innerHTML = `${auto ? '<span class="slot-actions"><button type="button" class="back">Back</button><button type="button" class="next">Next</button></span>' : ''}<div class="seek"><input type="range" min="0" max="1000" value="0" aria-label="シークバー"><span class="time">0:00 / 0:00</span><button type="button" class="mute" title="ミュート">🔊</button><input class="volume" type="range" min="0" max="100" value="100" aria-label="音量"><span class="speed">1.00x</span></div>`;
+      const slot = { element, order: index, position: index, auto, current: null, video: null, generation: 0, playlist: [], playlistIndex: index, history: [], dragging: false,
+        range: element.querySelector('.seek input'), time: element.querySelector('.time'), speed: element.querySelector('.speed'), mute: element.querySelector('.mute'), volume: element.querySelector('.volume') };
+      slot.range.addEventListener('pointerdown', () => { slot.dragging = true; });
+      slot.range.addEventListener('pointerup', () => { slot.dragging = false; });
+      slot.range.addEventListener('input', () => {
+        const video = slot.video;
+        if (!video || !Number.isFinite(video.duration) || video.duration <= 0) return;
+        video.currentTime = video.duration * Number(slot.range.value) / 1000;
+        slot.range.style.setProperty('--played', `${Number(slot.range.value) / 10}%`);
+      });
+      slot.mute.addEventListener('click', () => { if (slot.video) slot.video.muted = !slot.video.muted; });
+      slot.volume.addEventListener('input', () => { if (!slot.video) return; slot.video.volume = Number(slot.volume.value) / 100; slot.video.muted = slot.video.volume === 0; });
+      element.addEventListener('pointerdown', () => focusSlot(slot));
+      element.addEventListener('dblclick', event => { if (event.target.closest('.seek,.slot-actions')) return; if (document.fullscreenElement) document.exitFullscreen(); else element.requestFullscreen?.(); });
+      if (auto) {
+        element.querySelector('.next').addEventListener('click', () => nextSlot(slot));
+        element.querySelector('.back').addEventListener('click', () => previousSlot(slot));
+      }
+      element._slot = slot;
+      return slot;
     }
-    function closePlayer() { playerView.classList.remove('open'); $('#player-grid').replaceChildren(); }
+
+    function updateSeek(slot) {
+      const video = slot.video;
+      if (!video) return;
+      const duration = video.duration, progress = Number.isFinite(duration) && duration > 0 ? video.currentTime / duration : 0;
+      if (!slot.dragging) slot.range.value = String(Math.round(progress * 1000));
+      slot.range.style.setProperty('--played', `${progress * 100}%`);
+      slot.time.textContent = `${formatTime(video.currentTime)} / ${formatTime(duration)}`;
+    }
+    function updateSound(slot) {
+      const video = slot.video;
+      if (!video) return;
+      slot.mute.textContent = video.muted || video.volume === 0 ? '🔇' : '🔊';
+      slot.volume.value = String(Math.round((video.muted ? 0 : video.volume) * 100));
+    }
+    function slotMessage(slot, text) {
+      slot.element.querySelector('.slot-message')?.remove();
+      if (!text) return;
+      const message = document.createElement('span'); message.className = 'slot-message'; message.textContent = text;
+      slot.element.append(message);
+      setTimeout(() => message.remove(), 4000);
+    }
+
+    function clearMedia(slot) {
+      slot.generation++;
+      slot.video?.pause();
+      slot.element.querySelectorAll('video,iframe').forEach(media => media.remove());
+      slot.video = null;
+      slot.element.classList.remove('has-video');
+    }
+    function showEmbed(slot, video) {
+      clearMedia(slot);
+      const iframe = document.createElement('iframe');
+      iframe.src = embedUrl(video);
+      iframe.allow = 'autoplay; fullscreen; picture-in-picture'; iframe.allowFullscreen = true;
+      iframe.referrerPolicy = 'strict-origin-when-cross-origin'; iframe.title = video.title;
+      slot.element.prepend(iframe);
+    }
+    function putVideoInSlot(slot, video, restore = null) {
+      if (!video) return;
+      slot.current = video;
+      if (!video.url) { showEmbed(slot, video); return; }
+      clearMedia(slot);
+      const generation = slot.generation;
+      const media = document.createElement('video');
+      media.playsInline = true; media.preload = 'auto';
+      // No Referer: SpankBang's CDN is less likely to refuse a hotlinked file without one.
+      media.referrerPolicy = 'no-referrer'; media.setAttribute('referrerpolicy', 'no-referrer');
+      slot.video = media;
+      slot.element.prepend(media);
+      slot.element.classList.add('has-video');
+      for (const type of ['timeupdate', 'durationchange', 'loadedmetadata', 'seeked']) media.addEventListener(type, () => updateSeek(slot));
+      media.addEventListener('ratechange', () => { slot.speed.textContent = `${media.playbackRate.toFixed(2)}x`; });
+      media.addEventListener('volumechange', () => updateSound(slot));
+      media.addEventListener('click', () => { if (media.paused) play(slot); else media.pause(); });
+      media.addEventListener('ended', () => { if (slot.auto) advanceSlot(slot); });
+      // The MP4 links are signed and expire, so an old share link usually lands here; the embed still plays.
+      media.addEventListener('error', () => {
+        if (slot.generation !== generation) return;
+        showEmbed(slot, video);
+        slotMessage(slot, '動画URLの期限切れなどで直接再生できないため、埋め込みプレーヤーに切り替えました。');
+      });
+      if (restore) {
+        media.muted = restore.m === undefined ? false : Boolean(restore.m);
+        media.addEventListener('loadedmetadata', () => {
+          if (slot.generation !== generation) return;
+          media.playbackRate = Math.max(.25, Math.min(16, Number(restore.r) || 1));
+          if (Number(restore.p) > 0) media.currentTime = Math.min(media.duration || Number(restore.p), Number(restore.p));
+        }, { once: true });
+      }
+      media.src = video.url;
+      updateSound(slot);
+      play(slot);
+    }
+    // A tab opened from the bookmarklet has no user gesture yet, so sound is usually blocked: start muted then.
+    function play(slot) {
+      const media = slot.video;
+      media?.play().catch(error => {
+        if (error.name !== 'NotAllowedError' || slot.video !== media || media.muted) return;
+        media.muted = true;
+        media.play().then(() => setStatus('ブラウザーの制限によりミュートで開始しました。M または Shift+M で解除できます。')).catch(() => {});
+      });
+    }
+
+    function nextAutoVideo() { return autoNextIndex < autoQueue.length ? autoQueue[autoNextIndex++] : null; }
+    function advanceSlot(slot) { const video = nextAutoVideo(); if (!video) { setStatus('選択した動画をすべて再生しました。'); return; } slot.history.push(video); putVideoInSlot(slot, video); }
+    function nextSlot(slot) {
+      if (slot.auto) { advanceSlot(slot); return; }
+      if (slot.playlistIndex >= slot.playlist.length - 1) { setStatus('選択リストの最後の動画です。'); return; }
+      putVideoInSlot(slot, slot.playlist[++slot.playlistIndex]);
+    }
+    function previousSlot(slot) {
+      if (slot.auto) { if (slot.history.length < 2) { setStatus('この動画より前はありません。'); return; } slot.history.pop(); putVideoInSlot(slot, slot.history.at(-1)); return; }
+      if (slot.playlistIndex <= 0) { setStatus('選択リストの最初の動画です。'); return; }
+      putVideoInSlot(slot, slot.playlist[--slot.playlistIndex]);
+    }
+
+    function openPlayer(list, auto, restoreState = null) {
+      if (!list.length) return;
+      closeMedia();
+      const capacity = targetCount(), side = Math.ceil(Math.sqrt(capacity));
+      const shown = list.slice(0, capacity);
+      autoQueue = auto ? list : []; autoNextIndex = shown.length;
+      $('#player-title').innerHTML = `<a class="brand-link" href="https://spankbang.com/" target="_blank" rel="noopener noreferrer">SpankBang</a> Multi Player <small>${VERSION}${auto ? ' · Auto' : ''}</small>`;
+      grid.style.gridTemplateColumns = `repeat(${side},minmax(0,1fr))`;
+      grid.style.gridTemplateRows = `repeat(${side},minmax(0,1fr))`;
+      slots = shown.map((video, index) => {
+        const slot = makeSlot(index, auto);
+        slot.playlist = list;
+        slot.position = Number.isInteger(video.shareIndex) ? video.shareIndex : index;
+        slot.element.style.gridColumn = String(slot.position % side + 1);
+        slot.element.style.gridRow = String(Math.floor(slot.position / side) + 1);
+        if (auto) slot.history.push(video);
+        grid.append(slot.element);
+        return slot;
+      });
+      playerView.classList.add('open');
+      slots.forEach((slot, index) => putVideoInSlot(slot, shown[index], restoreState?.slots.find(item => item.i === slot.position)));
+      focusSlot(slots[0]);
+      clearInterval(shareTimer); shareTimer = setInterval(updateShareUrl, 1000); updateShareUrl();
+      const embeds = shown.filter(video => !video.url).length;
+      setStatus(embeds ? `${embeds}本は埋め込みプレーヤーで再生しています（シークバーとキー操作は使えません）。` : '');
+    }
+    function closeMedia() { clearInterval(shareTimer); slots.forEach(clearMedia); slots = []; grid.replaceChildren(); }
+    function closePlayer() { if (document.fullscreenElement) document.exitFullscreen(); playerView.classList.remove('open'); closeMedia(); history.replaceState(null, '', location.pathname + location.search); }
+
+    function focusSlot(slot) { if (!slot) return; document.querySelectorAll('.slot.keyboard-focus').forEach(item => item.classList.remove('keyboard-focus')); slot.element.classList.add('keyboard-focus'); try { slot.element.focus({ preventScroll: true }); } catch { slot.element.focus(); } }
+    function shiftFocus(key, reverse = false) {
+      const elements = [...grid.querySelectorAll('.slot')];
+      if (!elements.length) return;
+      let current = elements.findIndex(element => element.classList.contains('keyboard-focus')); if (current < 0) current = 0;
+      const firstTop = elements[0].getBoundingClientRect().top, firstNextRow = elements.findIndex(element => element.getBoundingClientRect().top > firstTop + 2);
+      const columns = firstNextRow < 0 ? elements.length : firstNextRow, row = Math.floor(current / columns), col = current % columns;
+      let next = current;
+      if (key === 'Tab') next = (current + (reverse ? -1 : 1) + elements.length) % elements.length;
+      else if (key === 'a' && col > 0) next = current - 1;
+      else if (key === 'd' && col < columns - 1 && current + 1 < elements.length) next = current + 1;
+      else if (key === 'w' && row > 0) next = current - columns;
+      else if (key === 's' && current + columns < elements.length) next = current + columns;
+      if (next !== current) focusSlot(elements[next]._slot);
+    }
+
+    window.addEventListener('keydown', event => {
+      if (!playerView.classList.contains('open') || event.altKey || event.ctrlKey || event.metaKey) return;
+      const key = event.code?.startsWith('Key') ? event.code.slice(3).toLowerCase() : String(event.key || '').toLowerCase();
+      if (event.shiftKey && (event.code === 'Space' || key === 'm')) {
+        const videos = slots.map(slot => slot.video).filter(Boolean);
+        event.preventDefault(); event.stopPropagation();
+        if (key === 'm') { const muteAll = videos.some(video => !video.muted); videos.forEach(video => video.muted = muteAll); setStatus(muteAll ? '全動画をミュートしました。' : '全動画のミュートを解除しました。'); }
+        else { const pauseAll = videos.some(video => !video.paused && !video.ended); videos.forEach(video => pauseAll ? video.pause() : video.play().catch(error => setStatus(error.message, true))); setStatus(pauseAll ? '全動画を停止しました。' : '全動画を再生します。'); }
+        return;
+      }
+      if (key === 'escape') { event.preventDefault(); closePlayer(); return; }
+      if (key === 'tab') { event.preventDefault(); event.stopPropagation(); shiftFocus('Tab', event.shiftKey); return; }
+      if (['w', 'a', 's', 'd'].includes(key)) { event.preventDefault(); event.stopPropagation(); shiftFocus(key); return; }
+      const slot = grid.querySelector('.slot.keyboard-focus')?._slot;
+      if (!slot) return;
+      if (key === 'b' || key === 'n') { event.preventDefault(); event.stopPropagation(); if (key === 'b') previousSlot(slot); else nextSlot(slot); return; }
+      if (!['z', 'x', 'c', 'v', 'm', 'f', 'g', 'h', ' ', 'arrowup', 'arrowdown'].includes(key)) return;
+      event.preventDefault(); event.stopPropagation();
+      const video = slot.video;
+      if (!video) { setStatus('この動画は埋め込みプレーヤーのため、キー操作は動画上で直接行ってください。'); return; }
+      if (key === ' ') { if (video.paused) video.play().catch(error => setStatus(error.message, true)); else video.pause(); }
+      else if (key === 'm') { video.muted = !video.muted; setStatus(video.muted ? 'ミュートしました。' : 'ミュートを解除しました。'); }
+      else if (key === 'arrowup' || key === 'arrowdown') { video.volume = Math.max(0, Math.min(1, Math.round((video.volume + (key === 'arrowup' ? 0.1 : -0.1)) * 10) / 10)); video.muted = video.volume === 0; setStatus(`音量: ${Math.round(video.volume * 100)}%`); }
+      else if (['z', 'x', 'c', 'v'].includes(key)) { const delta = ({ z: -5, x: 5, c: -30, v: 30 })[key]; video.currentTime = Math.max(0, Math.min(Number.isFinite(video.duration) ? video.duration : Infinity, video.currentTime + delta)); }
+      else if (key === 'f') video.playbackRate = 1;
+      else if (key === 'g') video.playbackRate = video.playbackRate === 2.5 ? 1 : 2.5;
+      else if (key === 'h') video.playbackRate = video.playbackRate === 10 ? 1 : 10;
+    }, true);
 
     function addFromText(text) {
       let added = 0, skipped = 0;
+      const list = [...selected];
       for (const token of text.split(/\s+/).filter(Boolean)) {
         let url;
         try { url = new URL(token); } catch { skipped++; continue; }
         const match = url.pathname.match(VIDEO_PATH);
         if (!SITE.test(url.hostname) || !match) { skipped++; continue; }
-        if (selected.some(video => video.id === match[1])) continue;
-        if (selected.length >= MAX) { skipped++; continue; }
+        if (list.some(video => video.id === match[1])) continue;
+        if (list.length >= 16) { skipped++; continue; }
         let slug = url.pathname.split('/').filter(Boolean).at(-1) || '';
         try { slug = decodeURIComponent(slug); } catch {}
-        const title = /video|embed|play/i.test(slug) || slug === match[1] ? `Video ${match[1]}` : slug.replace(/[+_-]+/g, ' ');
-        selected.push({ id: match[1], host: url.hostname, title: title.slice(0, 180) });
+        const title = /^(video|embed|play)$/i.test(slug) || slug === match[1] ? `Video ${match[1]}` : slug.replace(/[+_-]+/g, ' ');
+        list.push({ id: match[1], host: url.hostname, title: title.slice(0, 180), url: '' });
         added++;
       }
-      render();
-      setStatus(skipped ? `${added} 本追加しました。${skipped} 件はSpankBangの動画URLでないか、4本の上限を超えたため追加していません。` : `${added} 本追加しました。`, skipped > 0);
+      setSelection(list);
+      setStatus(skipped ? `${added} 本追加しました。${skipped} 件はSpankBangの動画URLでないか、16本の上限を超えたため追加していません。` : `${added} 本追加しました。`, skipped > 0);
     }
 
     function setupBookmarklet() {
       const link = $('#bookmarklet');
-      const playerUrl = location.origin + location.pathname;
-      const code = `javascript:${encodeURIComponent(`(${sbqpBookmarklet})(${JSON.stringify(playerUrl)})`)}`;
+      const code = `javascript:${encodeURIComponent(`(${sbqpBookmarklet})(${JSON.stringify(location.origin + location.pathname)})`)}`;
       link.href = code;
       link.addEventListener('click', event => { event.preventDefault(); $('#bookmarklet-status').textContent = 'このボタンはクリックではなく、ブックマークバーへドラッグして登録してください。'; });
       $('#copy-bookmarklet').addEventListener('click', async () => {
@@ -136,31 +368,36 @@
     }
 
     function loadFromHash() {
-      const fromHash = readHash();
-      if (!fromHash.length) return;
-      selected = fromHash;
-      render();
-      openPlayer();
+      const param = new URLSearchParams(location.hash.slice(1)).get('share'), shared = param && decodeShareState(param);
+      if (!shared?.slots.length) return;
+      setSelection(shared.slots.map(item => ({ id: item.id, host: item.h, title: item.t, url: item.u, shareIndex: item.i })));
+      slotCount.value = String(shared.n);
+      updateControls();
+      openPlayer(selected, false, shared);
+      if (Number(shared.c) > shared.slots.length) setStatus(`共有リンク内の動画は${Number(shared.c)}本中${shared.slots.length}本です。リンクが欠けていないか確認してください。`, true);
     }
 
     $('#selection').addEventListener('click', event => {
       const index = event.target.closest('[data-remove]')?.dataset.remove;
       if (index === undefined) return;
       selected.splice(Number(index), 1);
-      render();
+      renderSelection();
     });
-    $('#clear').addEventListener('click', () => { selected = []; render(); setStatus(''); });
-    $('#play').addEventListener('click', openPlayer);
+    $('#clear').addEventListener('click', () => { setSelection([]); setStatus(''); });
+    slotCount.addEventListener('change', updateControls);
+    selectedButton.addEventListener('click', () => openPlayer(selected.map(({ shareIndex, ...video }) => video), false));
+    autoButton.addEventListener('click', () => { openPlayer(selected.map(({ shareIndex, ...video }) => video), true); setStatus('順に自動再生中です。各動画は終了時またはNextで次へ進みます。'); });
     $('#add-urls').addEventListener('click', () => { addFromText($('#paste').value); $('#paste').value = ''; });
     $('#close-player').addEventListener('click', closePlayer);
-    document.addEventListener('keydown', event => { if (event.key === 'Escape') closePlayer(); });
+    $('#copy-share').addEventListener('click', shareCurrentUrl);
+    $('#share-x').addEventListener('click', () => shareTo('x'));
+    $('#share-line').addEventListener('click', () => shareTo('line'));
+    $('#share-threads').addEventListener('click', () => shareTo('threads'));
     window.addEventListener('hashchange', loadFromHash);
 
     setupBookmarklet();
-    // Read the hash before the first render: render() rewrites it from the (still empty) selection.
-    selected = readHash();
-    render();
-    openPlayer();
+    renderSelection();
+    loadFromHash();
   </script>
 </body>
 </html>

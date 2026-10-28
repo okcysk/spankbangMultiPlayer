@@ -13,10 +13,9 @@ function sbqpBookmarklet(PLAYER_URL, VERSION) {
   if (!SITE.test(location.hostname)) { alert('SpankBangのページで実行してください。'); return; }
   if (window.__sbqpBookmarklet) { window.__sbqpBookmarklet.scan(); return; }
 
-  /* sessionStorage survives navigation within this tab, so a selection can span several search pages. */
+  /* Every run starts with an empty selection. Older versions kept it in sessionStorage, so drop that copy too. */
   let selected = [];
-  try { selected = JSON.parse(sessionStorage.getItem(KEY) || '[]').filter(v => v && /^[a-z0-9]{1,16}$/i.test(v.id)).slice(0, MAX); } catch (e) {}
-  const save = () => { try { sessionStorage.setItem(KEY, JSON.stringify(selected)); } catch (e) {} };
+  try { sessionStorage.removeItem(KEY); } catch (e) {}
   const has = id => selected.some(v => v.id === id);
 
   function slugTitle(url) {
@@ -118,7 +117,6 @@ function sbqpBookmarklet(PLAYER_URL, VERSION) {
     open.disabled = selected.length < 1; open.style.opacity = open.disabled ? '.42' : '1';
     if (current) addCurrent.disabled = has(current[1]);
     for (const box of document.querySelectorAll('.sbqp-check')) box.checked = has(box.dataset.videoId);
-    save();
   }
 
   function toggle(info, on) {
@@ -167,6 +165,8 @@ function sbqpBookmarklet(PLAYER_URL, VERSION) {
     const missing = urls.filter(url => !url).length;
     if (missing) notice(`${missing}本は動画URLを取得できなかったため、埋め込みプレーヤー（シークバーなし）で再生します。`);
     if (win) { win.opener = null; win.location.href = target; } else location.href = target;
+    /* The player has its own copy of the selection now, so the next pick starts from nothing. */
+    selected = [];
     open.textContent = 'Multi Playerで開く'; refresh();
   });
   close.addEventListener('click', () => {
@@ -177,5 +177,4 @@ function sbqpBookmarklet(PLAYER_URL, VERSION) {
 
   window.__sbqpBookmarklet = { scan };
   scan(); refresh();
-  for (const video of selected) resolve(video);
 }

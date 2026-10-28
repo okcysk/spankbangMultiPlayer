@@ -89,9 +89,22 @@ function sbqpBookmarklet(PLAYER_URL, VERSION) {
   const open = button('Multi Playerで開く', true);
   const close = button('×', false);
   close.title = '閉じる';
+  /* Contact links styled like the Monsnode web player's header: a circled icon followed by the address. */
+  const contact = (href, icon, text) => {
+    const link = css(document.createElement('a'), 'display:inline-flex;align-items:center;gap:6px;color:#c6cad2;text-decoration:none;font-size:13px;white-space:nowrap');
+    link.href = href; link.target = '_blank'; link.rel = 'noopener noreferrer';
+    const mark = css(document.createElement('span'), 'display:inline-grid;place-items:center;width:20px;height:20px;border:1px solid #59606d;border-radius:50%;font-size:12px;font-weight:800');
+    mark.textContent = icon; mark.setAttribute('aria-hidden', 'true');
+    link.append(mark, text);
+    link.addEventListener('mouseenter', () => { link.style.color = '#c4f26a'; link.style.textDecoration = 'underline'; });
+    link.addEventListener('mouseleave', () => { link.style.color = '#c6cad2'; link.style.textDecoration = 'none'; });
+    return link;
+  };
+  const contacts = css(document.createElement('span'), 'display:inline-flex;align-items:center;gap:12px');
+  contacts.append(contact('mailto:okcysk@gmail.com', '✉', 'okcysk@gmail.com'), contact('https://x.com/okcysk46770', '𝕏', '@okcysk46770'));
   panel.append(label, count);
   if (current) panel.append(addCurrent);
-  panel.append(clear, open, close, message);
+  panel.append(clear, open, contacts, close, message);
   document.body.append(panel);
 
   let messageTimer;

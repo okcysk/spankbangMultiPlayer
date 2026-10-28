@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <title>SpankBang Multi Player v1.2.0 — Web</title>
+  <title>SpankBang Multi Player v1.2.1 — Web</title>
   <script src="./bookmarklet.js"></script>
   <style>
     :root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#eff1f5;background:#111318;color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#111318}
@@ -33,7 +33,7 @@
 <body>
   <div class="sticky-controls">
     <header>
-      <h1><a class="brand-link" href="https://spankbang.com/" target="_blank" rel="noopener noreferrer">SpankBang</a> Multi Player <small>v1.2.0</small></h1>
+      <h1><a class="brand-link" href="https://spankbang.com/" target="_blank" rel="noopener noreferrer">SpankBang</a> Multi Player <small>v1.2.1</small></h1>
       <nav class="contacts" aria-label="連絡先"><a href="mailto:okcysk@gmail.com"><span class="contact-icon" aria-hidden="true">✉</span>okcysk@gmail.com</a><a href="https://x.com/okcysk46770" target="_blank" rel="noopener noreferrer"><span class="contact-icon" aria-hidden="true">𝕏</span>@okcysk46770</a></nav>
     </header>
     <div class="toolbar">
@@ -88,7 +88,7 @@
     <div class="player-grid" id="player-grid"></div>
   </section>
   <script>
-    const VERSION = 'v1.2.0';
+    const VERSION = 'v1.2.1';
     const SIZES = [1, 4, 9, 16];
     const SITE = /^([a-z\d-]+\.)?spankbang\.(com|party)$/i;
     const VIDEO_ID = /^[a-z\d]{1,16}$/i;
@@ -124,7 +124,7 @@
       const state = { v: 1, n: targetCount(), c: slots.length, slots: slots.filter(slot => slot.current).map(slot => {
         const video = slot.video, current = slot.current;
         return { i: slot.position, id: current.id, h: current.host, t: current.title, u: slot.video ? current.url : '',
-          p: video && Number.isFinite(video.currentTime) ? Math.round(video.currentTime) : 0, r: video?.playbackRate || 1, m: video ? video.muted : true };
+          p: video && Number.isFinite(video.currentTime) ? Math.round(video.currentTime) : 0, r: video?.playbackRate || 1, m: video ? video.muted && !slot.autoMuted : false };
       }) };
       history.replaceState(null, '', `${location.pathname}${location.search}#share=${encodeShareState(state)}`);
     }
@@ -144,11 +144,11 @@
     }
     function setSelection(list) { selected = list.slice(0, 16); slotCount.value = String(selected.length ? countCapacity(selected.length) : 4); renderSelection(); }
 
-    function embedUrl(video) {
+    function embedUrl(video, muted) {
       const url = new URL(`https://${video.host}/${encodeURIComponent(video.id)}/embed/`);
-      // Muted autoplay is the browser-compatible way to start cross-origin embeds without a play click.
       url.searchParams.set('autoplay', '1');
-      url.searchParams.set('muted', '1');
+      // Muted autoplay is the browser-compatible way to start cross-origin embeds without a play click.
+      if (muted) url.searchParams.set('muted', '1');
       return url.href;
     }
 
@@ -209,8 +209,11 @@
     }
     function showEmbed(slot, video) {
       clearMedia(slot);
+      // Without a click on this page an embed cannot start with sound, so it starts muted until the first interaction.
+      slot.embedMuted = !hasUserGesture();
+      if (slot.embedMuted) armUnmute();
       const iframe = document.createElement('iframe');
-      iframe.src = embedUrl(video);
+      iframe.src = embedUrl(video, slot.embedMuted);
       iframe.allow = 'autoplay; fullscreen; picture-in-picture'; iframe.allowFullscreen = true;
       iframe.referrerPolicy = 'strict-origin-when-cross-origin'; iframe.title = video.title;
       slot.element.prepend(iframe);
@@ -231,7 +234,10 @@
       for (const type of ['timeupdate', 'durationchange', 'loadedmetadata', 'seeked']) media.addEventListener(type, () => updateSeek(slot));
       media.addEventListener('ratechange', () => { slot.speed.textContent = `${media.playbackRate.toFixed(2)}x`; });
       media.addEventListener('volumechange', () => updateSound(slot));
-      media.addEventListener('click', () => { if (media.paused) play(slot); else media.pause(); });
+      media.addEventListener('click', () => {
+        if (swallowClick) { swallowClick = false; return; }
+        if (media.paused) play(slot); else media.pause();
+      });
       media.addEventListener('ended', () => { if (slot.auto) advanceSlot(slot); });
       // The MP4 links are signed and expire, so an old share link usually lands here; the embed still plays.
       media.addEventListener('error', () => {
@@ -251,14 +257,45 @@
       updateSound(slot);
       play(slot);
     }
-    // A tab opened from the bookmarklet has no user gesture yet, so sound is usually blocked: start muted then.
+    // Videos open with sound. A tab opened from the bookmarklet has had no click or key press yet, and browsers
+    // refuse sound until it has, so the video then starts muted and its sound is turned on at the first interaction.
+    let unmuteArmed = false, swallowClick = false;
+    const hasUserGesture = () => navigator.userActivation?.hasBeenActive ?? false;
     function play(slot) {
       const media = slot.video;
       media?.play().catch(error => {
         if (error.name !== 'NotAllowedError' || slot.video !== media || media.muted) return;
-        media.muted = true;
-        media.play().then(() => setStatus('ブラウザーの制限によりミュートで開始しました。M または Shift+M で解除できます。')).catch(() => {});
+        media.muted = true; slot.autoMuted = true;
+        armUnmute();
+        media.play().catch(() => {});
       });
+    }
+    function armUnmute() {
+      if (unmuteArmed) return;
+      unmuteArmed = true;
+      setStatus('ブラウザーの制限により消音で開始しました。画面をクリックするかキーを押すと音声がオンになります。');
+      window.addEventListener('pointerdown', unmuteOnGesture, true);
+      window.addEventListener('keydown', unmuteOnGesture, true);
+    }
+    function unmuteOnGesture(event) {
+      window.removeEventListener('pointerdown', unmuteOnGesture, true);
+      window.removeEventListener('keydown', unmuteOnGesture, true);
+      unmuteArmed = false;
+      // The click that unmutes should not also pause the video it landed on, or re-mute through the mute button.
+      if (event.type === 'pointerdown' && event.target.closest?.('video')) swallowClick = true;
+      const onMuteButton = event.target.closest?.('.seek .mute');
+      for (const slot of slots) {
+        if (slot.video && slot.autoMuted) {
+          slot.autoMuted = false;
+          if (onMuteButton && slot.element.contains(onMuteButton)) continue;
+          slot.video.muted = false;
+          if (slot.video.paused && !slot.video.ended) play(slot);
+        } else if (slot.embedMuted && slot.current) {
+          slot.embedMuted = false;
+          slot.element.querySelector('iframe').src = embedUrl(slot.current, false);
+        }
+      }
+      if (playerView.classList.contains('open')) setStatus('音声をオンにしました。');
     }
 
     function nextAutoVideo() { return autoNextIndex < autoQueue.length ? autoQueue[autoNextIndex++] : null; }
@@ -298,9 +335,12 @@
       focusSlot(slots[0]);
       clearInterval(shareTimer); shareTimer = setInterval(updateShareUrl, 1000); updateShareUrl();
       const embeds = shown.filter(video => !video.url).length;
-      setStatus(embeds ? `${embeds}本は埋め込みプレーヤーで再生しています（シークバーとキー操作は使えません）。` : '');
+      if (!unmuteArmed) setStatus(embeds ? `${embeds}本は埋め込みプレーヤーで再生しています（シークバーとキー操作は使えません）。` : '');
     }
-    function closeMedia() { clearInterval(shareTimer); slots.forEach(clearMedia); slots = []; grid.replaceChildren(); }
+    function closeMedia() {
+      clearInterval(shareTimer); slots.forEach(clearMedia); slots = []; grid.replaceChildren();
+      window.removeEventListener('pointerdown', unmuteOnGesture, true); window.removeEventListener('keydown', unmuteOnGesture, true); unmuteArmed = false;
+    }
     function closePlayer() { if (document.fullscreenElement) document.exitFullscreen(); playerView.classList.remove('open'); closeMedia(); history.replaceState(null, '', location.pathname + location.search); }
 
     function focusSlot(slot) { if (!slot) return; document.querySelectorAll('.slot.keyboard-focus').forEach(item => item.classList.remove('keyboard-focus')); slot.element.classList.add('keyboard-focus'); try { slot.element.focus({ preventScroll: true }); } catch { slot.element.focus(); } }
